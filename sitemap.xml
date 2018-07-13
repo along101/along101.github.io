@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://github.com/along101/2018/05/14/netflix-archaius/</loc>
+    
+    <lastmod>2018-07-13T08:25:03.738Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://github.com/along101/about/index.html</loc>
+    
+    <lastmod>2018-07-13T08:21:27.584Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://github.com/along101/2018/06/13/feign-source-analysis/</loc>
     
     <lastmod>2018-07-13T07:39:49.522Z</lastmod>
@@ -33,13 +47,6 @@
     <loc>https://github.com/along101/tags/index.html</loc>
     
     <lastmod>2018-07-13T07:38:47.840Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://github.com/along101/about/index.html</loc>
-    
-    <lastmod>2018-06-08T08:50:47.816Z</lastmod>
     
   </url>
   

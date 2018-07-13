@@ -4,6 +4,31 @@
 
     
   <url>
+    <loc>https://github.com/along101/2018/05/14/netflix-archaius/</loc>
+    <lastmod>2018-07-13T08:25:03.738Z</lastmod>
+    <data>
+        <display>
+        <title>微服务动态配置组件netflix archaius</title>
+        <pubTime>2018-05-14T04:03:13.000Z</pubTime>
+        
+        <tag>netflix</tag>
+         
+        <tag>archaius</tag>
+         
+        <tag>config</tag>
+         
+         
+           
+             
+              <breadCrumb title="spring" url="https://github.com/along101/categories/spring/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+  <url>
     <loc>https://github.com/along101/2018/06/13/feign-source-analysis/</loc>
     <lastmod>2018-07-13T07:39:49.522Z</lastmod>
     <data>
@@ -74,7 +99,6 @@
     </data>
     </url>
 
-    
     
     
 </urlset>
