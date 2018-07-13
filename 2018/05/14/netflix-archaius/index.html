@@ -81,23 +81,23 @@
 
 
 
-<meta name="description" content="archaius介绍archaius是Netflix公司开源项目之一，基于java的配置管理类库，主要用于多配置存储的动态获取。主要功能是对apache common configuration类库的扩展。在云平台开发中可以将其用作分布式配置管理依赖构件。同时，它有如下一些特性：  动态获取属性 高效和线程安全的配置操作 配置改变时提供回调机制 可以通过jmx操作配置 复合配置  官网给出的结构图">
+<meta name="description" content="archaius介绍archaius是Netflix公司开源项目之一，基于java的配置管理类库，主要用于多配置存储的动态获取。主要功能是对apache common configuration类库的扩展。在云平台开发中可以将其用作分布式配置管理依赖构件。同时，它有如下一些特性：  动态获取属性 高效和线程安全的配置操作 配置改变时提供回调机制 可以通过jmx操作配置 复合配置">
 <meta name="keywords" content="netflix,archaius,config">
 <meta property="og:type" content="article">
 <meta property="og:title" content="微服务动态配置组件netflix archaius">
 <meta property="og:url" content="https://github.com/along101/2018/05/14/netflix-archaius/index.html">
 <meta property="og:site_name" content="along101 个人博客">
-<meta property="og:description" content="archaius介绍archaius是Netflix公司开源项目之一，基于java的配置管理类库，主要用于多配置存储的动态获取。主要功能是对apache common configuration类库的扩展。在云平台开发中可以将其用作分布式配置管理依赖构件。同时，它有如下一些特性：  动态获取属性 高效和线程安全的配置操作 配置改变时提供回调机制 可以通过jmx操作配置 复合配置  官网给出的结构图">
+<meta property="og:description" content="archaius介绍archaius是Netflix公司开源项目之一，基于java的配置管理类库，主要用于多配置存储的动态获取。主要功能是对apache common configuration类库的扩展。在云平台开发中可以将其用作分布式配置管理依赖构件。同时，它有如下一些特性：  动态获取属性 高效和线程安全的配置操作 配置改变时提供回调机制 可以通过jmx操作配置 复合配置">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://github.com/images/archaius/archaius.png">
 <meta property="og:image" content="https://github.com/images/archaius/property.png">
 <meta property="og:image" content="https://github.com/images/archaius/config.png">
 <meta property="og:image" content="https://github.com/images/archaius/init.png">
 <meta property="og:image" content="https://github.com/images/archaius/listener.png">
-<meta property="og:updated_time" content="2018-07-13T08:25:03.738Z">
+<meta property="og:updated_time" content="2018-07-13T08:27:36.993Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="微服务动态配置组件netflix archaius">
-<meta name="twitter:description" content="archaius介绍archaius是Netflix公司开源项目之一，基于java的配置管理类库，主要用于多配置存储的动态获取。主要功能是对apache common configuration类库的扩展。在云平台开发中可以将其用作分布式配置管理依赖构件。同时，它有如下一些特性：  动态获取属性 高效和线程安全的配置操作 配置改变时提供回调机制 可以通过jmx操作配置 复合配置  官网给出的结构图">
+<meta name="twitter:description" content="archaius介绍archaius是Netflix公司开源项目之一，基于java的配置管理类库，主要用于多配置存储的动态获取。主要功能是对apache common configuration类库的扩展。在云平台开发中可以将其用作分布式配置管理依赖构件。同时，它有如下一些特性：  动态获取属性 高效和线程安全的配置操作 配置改变时提供回调机制 可以通过jmx操作配置 复合配置">
 <meta name="twitter:image" content="https://github.com/images/archaius/archaius.png">
 
 
@@ -417,6 +417,7 @@
 <li>可以通过jmx操作配置</li>
 <li>复合配置</li>
 </ul>
+<a id="more"></a>
 <p>官网给出的结构图：<br><img src="/images/archaius/archaius.png" alt=""></p>
 <h1 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h1><p>对于传统的单体应用，properties等配置文件可以解决配置问题，同时也可以通过maven profile配置来区别各个环境，但在一个几百上千节点的的微服务生态中，如何把每个微服务的配置文件都进行更新，并且很多时候还需要重启服务，是一件无法忍受的事情。<br>对于微服务架构而言，一个通用的配置中心是必不可少的。zookeeper、consul、etcd都可以作为集中的配置中心，但是他们的客户端api不是为配置而编写的，使用到配置场景时，会显得非常的臃肿，Archaius可以与这些配置中心结合，它提供的动态配置api，使用起来非常简单方便。<br>spring cloud的spring-cloud-netflix-core组件中集成了archaius，hystrix使用archaius动态修改各commandKey对应的参数（并发数和超时时间），用简单优雅的代码实现不重启生效配置项。</p>
 <h1 id="快速入门"><a href="#快速入门" class="headerlink" title="快速入门"></a>快速入门</h1><p>在maven工程中加入依赖的配置：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">  &lt;groupId&gt;com.netflix.archaius&lt;/groupId&gt;</span><br><span class="line">  &lt;artifactId&gt;archaius-core&lt;/artifactId&gt;</span><br><span class="line">  &lt;version&gt;0.7.4&lt;/version&gt;</span><br><span class="line"> &lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
