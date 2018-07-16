@@ -1,12 +1,12 @@
 ---
-title: feign源码解析
+title: Feign源码解析
 date: 2018-06-13 12:03:13
 tags: [java,feign,rest]
 categories: spring
 ---
 
 
-## feign介绍
+## Feign介绍
 
 [Feign](https://github.com/OpenFeign/feign/)是一款java的Restful客户端组件，Feign使得 Java HTTP 客户端编写更方便。Feign 灵感来源于[Retrofit](https://github.com/square/retrofit), [JAXRS-2.0](https://jax-rs-spec.java.net/nonav/2.0/apidocs/index.html)和[WebSocket](http://www.oracle.com/technetwork/articles/java/jsr356-1937161.html)。feign在github上有近3K个star，是一款相当优秀的开源组件，虽然相比Retrofit的近30K个star，逊色了太多，但是spring cloud集成了feign，使得feign在java生态中比Retrofit使用的更加广泛。
 
