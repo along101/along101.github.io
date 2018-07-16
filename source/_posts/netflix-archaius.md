@@ -18,7 +18,7 @@ archaius是Netflix公司开源项目之一，基于java的配置管理类库，�
 <!--more-->
 
 官网给出的结构图：
-![](/images/archaius/archaius.png)
+![](netflix-archaius/archaius.png)
 
 # 适用场景
 
@@ -105,7 +105,7 @@ timeToWait: 5
 - DynamicLongProperty
 
 类图如下：
-![](/images/archaius/property.png)
+![](netflix-archaius/property.png)
 
 基本类型的动态配置继承`PropertyWrapper`类，实现接口`Property`，方法说明：
 
@@ -519,7 +519,7 @@ static{
 - containerConfiguration 容器配置，`ConfigurationManager.getConfigInstance().setProperty(key,value)`设置的配置
 - APPLICATION_PROPERTIES 调用`configurationManager.loadAppOverrideProperties`设置的配置
 
-![](/images/archaius/config.png)
+![](netflix-archaius/config.png)
 
 这样就生成了`AbstractConfiguration`，保存在`ConfigurationManager.instance`静态变量上。  
 
@@ -554,7 +554,7 @@ static{
 ```
 到这里就初始化完了。根据以上源代码的分析，我们画出类图如下：
 
-![](/images/archaius/init.png)
+![](netflix-archaius/init.png)
 
 这里最重要的两个类是
 - `ConfigurationManager` 静态变量`AbstractConfiguration instance为`所有配置项信息
@@ -1069,7 +1069,7 @@ public void addConfigurationAtIndex(AbstractConfiguration config, String name, i
 ```
 这里的config实现类是`ConfigurationBackedDynamicPropertySupportImpl`，同样是一个适配器模式，将apache的`DynamicPropertySupport`适配为archaius自己的`DynamicPropertySupport`，在`DynamicProperty`里面会用到。我们给出类图：
 
-![](/images/archaius/listener.png)
+![](netflix-archaius/listener.png)
 
 根据前面的分析，fireEvent触发的事件最终会适配到`DynamicPropertyListener`的setProperty方法：
 ```

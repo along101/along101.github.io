@@ -34,15 +34,15 @@ hexo手工发布blog到github的原理是通过`hexo g`，将md文件生成静�
 1.进入官网[https://www.travis-ci.org/](https://www.travis-ci.org/)，使用github账号登录。
 2.添加仓库`username.github.io`
 
-![](/images/travis/travis.png)
+![travis](hexo-github-travis/travis.png)
 
 3. 在github添加Access Token，在travis中用此token push commit到github
 
- ![](/images/travis/github-token.png)
+ ![github-token](hexo-github-travis/github-token.png)
 
 4. 在Travis设置页面将上一步生成的token添加到环境变量中，命名为myblog
 
-![](/images/travis/travis-token.png)
+![travis-token](hexo-github-travis/travis-token.png)
 
 5. 在`username.github.io`仓库hexo分支中添加'.travis.yml'配置文件
 
@@ -84,4 +84,4 @@ env:
 
 6. 提交该配置到git仓库，Travis就会自动发布blog，以后写blog，只需要在hexo分支的`source/_posts`目录下提交blog的md文档，Travis就会自动发布静态页面到master上
 
-![](/images/travis/travis-build.png)
+![travis-build](hexo-github-travis/travis-build.png)

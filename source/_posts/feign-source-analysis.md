@@ -45,7 +45,7 @@ feign使用教程请参考官网[https://github.com/OpenFeign/feign/](https://gi
 
 我们先来看看接口的动态代理是如何构建出来的，下图是主要接口和类的类图：
 
-![](/images/feign/init1.png)
+![](feign-source-analysis/init1.png)
 
 从上文中的示例可以看到，构建的接口动态代理对象是通过`Feign.builder()`生成`Feign.Builder`的构造者对象，然后设置相关的参数，再调用target方法构造的。`Feign.Builder`的参数包括：
 
@@ -153,7 +153,7 @@ feign使用教程请参考官网[https://github.com/OpenFeign/feign/](https://gi
 
 `SynchronousMethodHandler`是feign组件的核心，接口方法调用转换为http请求和解析http响应都是通过`SynchronousMethodHandler`来执行的，相关类图如下：
 
-![](/images/feign/init2.png)
+![](feign-source-analysis/init2.png)
 
 创建`MethodHandler`实现类`SynchronousMethodHandler`的代码：
 ```java
@@ -417,7 +417,7 @@ public final class MethodMetadata implements Serializable {
 ## 接口调用
 为方便理解，分析完feign源码后，我将feign执行过程分成三层，如下图：
 
-![](/images/feign/execute.png)
+![](feign-source-analysis/execute.png)
 
 三层分别为：
 - 代理层 动态代理调用层
@@ -846,7 +846,7 @@ client是一个`Client`接口，默认实现类是`Client.Default`，使用java 
 8、返回的对象最后返回到`Proxy`
 
 时序图如下：
-![](/images/feign/execute-sequence.png)
+![](feign-source-analysis/execute-sequence.png)
 
 ## feign扩展点总结
 前文分析源代码时，已经提到了feign的扩展点，最后我们再将feign的主要扩展点进行总结一下：
