@@ -1,0 +1,29 @@
+language: node_js
+node_js: stable
+
+# S: Build Lifecycle
+install:
+  - npm install
+
+#before_script:
+  # - npm install -g gulp
+
+script:
+  - hexo g
+
+after_script:
+  - cd ./public
+  - git init
+  - git config user.name "along101"
+  - git config user.email "yzl1414114@163.com"
+  - git add .
+  - git commit -m "Update docs"
+  - git push --force --quiet "https://${myblog}@${GH_REF}" master:master
+
+#  E: Build LifeCycle
+branches:
+  only:
+    - hexo
+env:
+  global:
+    - GH_REF: github.com/along101/along101.github.io.git
