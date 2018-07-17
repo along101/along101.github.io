@@ -97,7 +97,7 @@ menu:
   tags: /tags/ || tags
   categories: /categories/ || th
   archives: /archives/ || archive
-  #schedule: /schedule/ || calendar
+  schedule: /schedule/ || calendar
   #sitemap: /sitemap.xml || sitemap
   #commonweal: /404/ || heartbeat
 
@@ -579,9 +579,9 @@ baidu_push: true
 # API Documentation:
 # https://developers.google.com/google-apps/calendar/v3/reference/events/list
 calendar:
-  enable: false
-  calendar_id: <required>
-  api_key: <required>
+  enable: true
+  calendar_id: 631272437638-9ushs06lu9vrpnblnn9shkbad7el003m.apps.googleusercontent.com
+  api_key: AIzaSyDmOLf13DaTVIRPyrJzCjgH8riF5DndUa4
   orderBy: startTime
   offsetMax: 24
   offsetMin: 4
