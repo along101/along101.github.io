@@ -2,7 +2,7 @@
 title: Hexo+Github搭建个人博客
 date: 2018-07-15 11:29:57
 tags: [Hexo,Github,博客]
-categories: [技术文章]
+categories: [工具]
 author: 李志明
 ---
 

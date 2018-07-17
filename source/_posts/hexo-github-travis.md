@@ -2,7 +2,7 @@
 title: hexo博客使用Travis CI自动发布
 date: 2018-07-16 11:09:13
 tags: [hexo,blog,travis,ci]
-categories: 工具
+categories: [工具]
 ---
 
 # hexo 介绍
