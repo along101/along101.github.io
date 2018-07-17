@@ -124,7 +124,7 @@ java.nio全称java non-blocking IO，是指jdk1.4 及以上版本里提供的新
 
 用一张图，简单的描述io 和 nio区别
 
-![]()
+![](java-nio-socket/1.png)
 
 # java nio socket selector模型原理
 
@@ -172,7 +172,7 @@ public class SelectionKeyImpl extends AbstractSelectionKey {
 
 `SelectionKeyImpl` 的属性channel是`SelChImpl`类型，是所有`Selectable  Channel`的接口
 
-![]()
+![](java-nio-socket/2.png)
 
 `SelectionKeyImpl`是一个接口，源代码如下：
 ```
@@ -607,7 +607,7 @@ SelectionKeyImpl localSelectionKeyImpl = (SelectionKeyImpl)this.fdToKey.get(Inte
 
 nio编程模型，主要是要搞清楚几个类之间的关系，`Selector`、`Channel`、`SelectionKey`，其中`SelectionKey`是`Selector`和`Channel`的纽带。
 
-![]()
+![](java-nio-socket/3.png)
 
 - 一个`SelectableChannel`中包含多个`SelectKey`，是通过注册不同的`Selector`来实现的。
 - 一个`Selector`中包含多个`SelectionKey`，每个`key`对应一个`channel`
