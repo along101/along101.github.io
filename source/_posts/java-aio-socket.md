@@ -1,5 +1,5 @@
 ---
-title: java aio socket 分析
+title: java aio socket 原理分析
 date: 2018-01-29 17:05:57
 tags: [java,aio,socket]
 categories: [java]
@@ -7,8 +7,11 @@ categories: [java]
 
 # 说明
 
-本文通过java源代码来分析java aio socket实现原理
+Java AIO就是Java作为对异步IO提供支持的NIO.2 ，Java NIO2 (JSR 203)定义了更多的 New I/O APIs， 提案2003提出，直到2011年才发布， 最终在JDK 7中才实现。
 
+从编程模式上来看AIO相对于NIO的区别在于，NIO需要使用者线程不停的轮询IO对象，来确定是否有数据准备好可以读了，而AIO则是在数据准备好之后，才会通知数据使用者，这样使用者就不需要不停地轮询了。
+
+当然AIO的异步特性并不是Java实现的伪异步，而是使用了系统底层API的支持，在Unix系统下，采用了epoll IO模型，而windows便是使用了IOCP模型。
 
 <!--more-->
 
