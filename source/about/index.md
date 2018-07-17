@@ -1,5 +1,5 @@
 title: ""
-layout: "page"
+type: "page"
 ---
 
 
