@@ -16,6 +16,7 @@ Java AIO就是Java作为对异步IO提供支持的NIO.2 ，Java NIO2 (JSR 203)�
 <!--more-->
 
 # java aio socket 源代码解析
+
 先上demo，sever端代码如下
 ```java
 /**
@@ -91,9 +92,7 @@ public class AIOEchoServer {
             }
         }
     }
-
 }
-
 ```
 
 再看client端：
@@ -148,21 +147,23 @@ public class AIOClient {
         clientChannel.close();
         System.out.println("channel close success!");
     }
-
 }
 ```
+
 相对于NIO，服务端代码没有Selector，SelectionKey，不需要自己去循环，但是异步方式有些地方比较难以理解。客户端代码像javascript的ajax调用。
 
 # windows上实现
 
 ## 连接建立
+
 ### 先看channel的创建
+
 ```
 AsynchronousServerSocketChannel.open()
 //往下跟
 provider.openAsynchronousServerSocketChannel(group);
 
-//windows上，创建一个WindowsAsynchronousServerSocketChannelImpl
+    //windows上，创建一个WindowsAsynchronousServerSocketChannelImpl
     @Override
     public AsynchronousServerSocketChannel openAsynchronousServerSocketChannel(AsynchronousChannelGroup group)
         throws IOException
@@ -170,6 +171,7 @@ provider.openAsynchronousServerSocketChannel(group);
         return new WindowsAsynchronousServerSocketChannelImpl(toIocp(group));
     }
 ```
+
 我们来看看WindowsAsynchronousServerSocketChannelImpl，是一个异步ServerSockethannelde的实现，包含几个重要属性
 - FileDescriptor fd 文件描述符
 - InetSocketAddress localAddress 本地地址
@@ -179,6 +181,7 @@ provider.openAsynchronousServerSocketChannel(group);
 - PendingIoCache ioCache
 - long dataBuffer
 - AtomicBoolean accepting
+
 异步通道组的作用是为一组通道提供资源共享，比如异步运行时共享线程池。
 
 ### 然后是bind本地地址
@@ -198,6 +201,7 @@ provider.openAsynchronousServerSocketChannel(group);
             end();
         }
 ```
+
 最后调用的是本地方法，将fd绑定到端口上
 ```
     public static void bind(FileDescriptor fd, InetAddress addr, int port)
@@ -219,10 +223,13 @@ provider.openAsynchronousServerSocketChannel(group);
                                      int port)
         throws IOException;
 ```
+
 ### 接下来是AsynchronousServerSocketChannel.accept
+
 ```
 public abstract <A> void accept(A attachment,CompletionHandler<AsynchronousSocketChannel,? super A> handler);
 ```
+
 accept是一个抽象方法，包含两个参数：
 - attachment 附加对象，跟nio中注册到Selector上的附加对象一样
 - handler accept成功后回调处理逻辑
@@ -230,18 +237,18 @@ accept是一个抽象方法，包含两个参数：
 accept实现方法：
 
 ```
-//AsynchronousServerSocketChannelImpl类
+    //AsynchronousServerSocketChannelImpl类
     public final <A> void accept(A attachment,  CompletionHandler<AsynchronousSocketChannel,? super A> handler) {
         if (handler == null)
             throw new NullPointerException("'handler' is null");
         implAccept(attachment, (CompletionHandler<AsynchronousSocketChannel,Object>)handler);
     }
 
-//WindowsAsynchronousServerSocketChannelImpl类
+    //WindowsAsynchronousServerSocketChannelImpl类
     @Override
     Future<AsynchronousSocketChannel> implAccept(Object attachment, final CompletionHandler<AsynchronousSocketChannel,Object> handler) {
 。。。
-//创建一个被accecped的socket
+        //创建一个被accecped的socket
         WindowsAsynchronousSocketChannelImpl ch = null;
         IOException ioe = null;
         try {
@@ -252,27 +259,27 @@ accept实现方法：
         } finally {
             end();
         }
-//出现异常，直接调用handle
+        //出现异常，直接调用handle
         if (ioe != null) {
             if (handler == null)
                 return CompletedFuture.withFailure(ioe);
             Invoker.invokeIndirectly(this, handler, attachment, null, ioe);
             return null;
         }
-//通过getSecurityManager检查
+        //通过getSecurityManager检查
         AccessControlContext acc = (System.getSecurityManager() == null) ? null : AccessController.getContext();
-//PendingFuture实现Future接口，存放this，handler和attachment
+        //PendingFuture实现Future接口，存放this，handler和attachment
         PendingFuture<AsynchronousSocketChannel,Object> result = new PendingFuture<AsynchronousSocketChannel,Object>(this, handler, attachment);
-//AcceptTask实现Runnable接口，
+        //AcceptTask实现Runnable接口，
         AcceptTask task = new AcceptTask(ch, acc, result);
         result.setContext(task);
-//并发控制
+        //并发控制
         if (!accepting.compareAndSet(false, true))
             throw new AcceptPendingException();
 
-// 检查操作系统是否支持线程无关的I/O，什么意思？
+        // 检查操作系统是否支持线程无关的I/O，什么意思？
         if (Iocp.supportsThreadAgnosticIo()) {
-//我的windows上跑这里
+        //我的windows上跑这里
             task.run();
         } else {
             Invoker.invokeOnThreadInThreadPool(this, task);
@@ -280,6 +287,7 @@ accept实现方法：
         return result;
     }
 ```
+
 AcceptTask的run方法如下
 ```
         @Override
@@ -288,7 +296,7 @@ AcceptTask的run方法如下
 。。。
                     synchronized (result) {
                         overlapped = ioCache.add(result);
-            //重点是这行，调用native方法，windows上直接返回
+                        //重点是这行，调用native方法，windows上直接返回
                         int n = accept0(handle, channel.handle(), overlapped, dataBuffer);
                         if (n == IOStatus.UNAVAILABLE) {
                             return;
@@ -297,7 +305,7 @@ AcceptTask的run方法如下
                         finishAccept();
 
                         enableAccept();
-                //将接收到的channel设置到result中，Future的get方法阻塞就会唤醒
+                        //将接收到的channel设置到result中，Future的get方法阻塞就会唤醒
                         result.setResult(channel);
                     }
 。。。
@@ -308,9 +316,9 @@ AcceptTask的run方法如下
             Invoker.invokeIndirectly(result);
         }
 ```
+
 调试到这里，accept方法实际上已经返回了，那么，当客户端有连接过来的时候，是如何调用回调函数的呢？我们来看看accept0的native方法，打开WindowsAsynchronousServerSocketChannelImpl.c
 ```
-
 JNIEXPORT jint JNICALL
 Java_sun_nio_ch_WindowsAsynchronousServerSocketChannelImpl_accept0(JNIEnv* env, jclass this,
     jlong listenSocket, jlong acceptSocket, jlong ov, jlong buf)
@@ -323,14 +331,6 @@ Java_sun_nio_ch_WindowsAsynchronousServerSocketChannelImpl_accept0(JNIEnv* env, 
     DWORD nread = 0;
     OVERLAPPED* lpOverlapped = (OVERLAPPED*)jlong_to_ptr(ov);
     ZeroMemory((PVOID)lpOverlapped, sizeof(OVERLAPPED));
- 
-    
-    
-       
-        
-    
-    
-    
     
     res = (*AcceptEx_func)(s1,  //一参本地监听Socket 
                            s2, //二参为即将到来的客人准备好的Socket 
@@ -352,6 +352,7 @@ Java_sun_nio_ch_WindowsAsynchronousServerSocketChannelImpl_accept0(JNIEnv* env, 
     return 0;
 }
 ```
+
 看不太明白。。。在看看前面的代码，C语言很多都不记得了，复习了下，搞了个大概
 ```
 //定义一个函数指针，后面会指向windows上的函数AcceptEx
@@ -398,12 +399,14 @@ Java_sun_nio_ch_WindowsAsynchronousServerSocketChannelImpl_initIDs(JNIEnv* env, 
     closesocket(s);
 }
 ```
+
 这里通过WSAIoctl获取AcceptEx函数指针，供其他地方调用。  
+
 AcceptEx函数的解释：Windows套接字AcceptEx函数接受一个新的连接，返回本地和远程地址，并接收由客户端应用程序发送的第一块数据。关键点就在这个AcceptEx函数，调用这个函数，立即返回了，实际上没有创建连接，创建一个等待连接的数据结构体放在port指定的队列中，如果来了新的连接（客户端连接，触发事件），会将连接信息填写到结构体中，修改状态。这个连接准备好了，肯定有地方去消费这个连接，在哪里呢？  
+
 我们回到AsynchronousServerSocketChannel.open()这个位置，这里打开了一个ServerSocket，内部使用了一个Iocp，前面我们没有解释这个Iocp是什么意思，查阅资料发现，这是windows网路编程提出的一个模型，（I/O Completion Port）,常称I/O完成端口。要深入这个模型，又会比较复杂，我们这里先简单的理解下，AcceptEx被调用时，会在serverSocket上注册一个回调，如果有客户端连上来了，操作系统会来处理。如何处理的呢？ AsynchronousServerSocketChannel.open()的时候，会创建一个iocp java对象，内部调用native方法createIoCompletionPort创建windos的 iocp，然后将与serverSocketChannel关联。
 
 ```
-
     Iocp(AsynchronousChannelProvider provider, ThreadPool pool)
         throws IOException
     {
@@ -446,7 +449,7 @@ AcceptEx函数的解释：Windows套接字AcceptEx函数接受一个新的连接
         return key;
     }
     
-//Iocp.java native方法
+    //Iocp.java native方法
     private static native void initIDs();
 
     private static native long createIoCompletionPort(long handle,
@@ -462,6 +465,7 @@ AcceptEx函数的解释：Windows套接字AcceptEx函数接受一个新的连接
 
     private static native String getErrorMessage(int error);
 ```
+
 然后启动一个线程，阻塞在getQueuedCompletionStatus方法处。
 ```
 
@@ -488,8 +492,8 @@ AcceptEx函数的解释：Windows套接字AcceptEx函数接受一个新的连接
         }
     }
 ```
-我们用客户端发起一个连接，阻塞的这行就会被唤醒，跳到下一行
 
+我们用客户端发起一个连接，阻塞的这行就会被唤醒，跳到下一行
 ```
                     // handle wakeup to execute task or shutdown
                     if (ioResult.completionKey() == 0 &&
@@ -557,6 +561,7 @@ AcceptEx函数的解释：Windows套接字AcceptEx函数接受一个新的连接
                     }
                 }
 ```
+
 根据以上代码中的注释，我们基本上搞清楚了，如何accept一个请求后如何被唤醒的。总结下，主要是两个key，一个是将serverSocketChannel注册到Iocp中的CompletionKey，另一个是在AccetpEx函数中注册的overlapped。在java内存中用hashmap缓存key与对象关系。然后我们再看看回调函数的执行：
 ```
         @Override
@@ -569,15 +574,17 @@ AcceptEx函数的解释：Windows套接字AcceptEx函数接受一个新的连接
             Invoker.invokeIndirectly(result);
         }
 ```
+
 Invoker内部代码逻辑比较简单，不再这里描述了。 
 
 到这里，整个accept的过程就分析完了。
----
 
 ## 异步读取数据
+
 下面我们继续分析，是如何异步读取数据的。
 
 ### 回到demo中的accept的回调函数completed
+
 ```
             public void completed(AsynchronousSocketChannel channel, Object attachment) {
                 //这里得到一个channel，在这个channel上读取数据
@@ -595,10 +602,10 @@ Invoker内部代码逻辑比较简单，不再这里描述了。
                 }
             }
 ```
-我们跟到channel.read内部：
 
+我们跟到channel.read内部：
 ```
-//AsynchronousSocketChannel
+    //AsynchronousSocketChannel
     @Override
     public final <A> void read(ByteBuffer dst,
                                A attachment,
@@ -607,7 +614,7 @@ Invoker内部代码逻辑比较简单，不再这里描述了。
         read(dst, 0L, TimeUnit.MILLISECONDS, attachment, handler);
     }
     
-//AsynchronousSocketChannelImpl    
+    //AsynchronousSocketChannelImpl    
     @Override
     public final <A> void read(ByteBuffer dst,
                                long timeout,
@@ -635,7 +642,7 @@ Invoker内部代码逻辑比较简单，不再这里描述了。
         return implRead(isScatteringRead, dst, dsts, timeout, unit, att, handler);
     }
     
-//WindowsAsynchronousSocketChannelImpl    
+    //WindowsAsynchronousSocketChannelImpl    
     @Override
     <V extends Number,A> Future<V> implRead(boolean isScatteringRead,
                                             ByteBuffer dst,
@@ -680,7 +687,7 @@ Invoker内部代码逻辑比较简单，不再这里描述了。
         return result;
     }
     
-//ReadTask执行    
+        //ReadTask执行    
         @Override
         @SuppressWarnings("unchecked")
         public void run() {
@@ -740,6 +747,7 @@ Invoker内部代码逻辑比较简单，不再这里描述了。
             Invoker.invoke(result);
         }
 ```
+
 跟accept的过程很类似，同样是通过iocp模型实现异步的，我们看看native方法read0的实现：
 ```
 JNIEXPORT jint JNICALL
@@ -775,13 +783,15 @@ Java_sun_nio_ch_WindowsAsynchronousSocketChannelImpl_read0(JNIEnv* env, jclass t
     return IOS_UNAVAILABLE;
 }
 ```
+
 这里是调用windows的WSARecv方法负责注册接收数据的实现方式。有数据过来，iocp的getQueuedCompletionStatus会被唤醒，得到ioResult对象，再根据CompletionKey和overlapped得到channel和PendingFuture，然后调用这个PendingFuture中的回调函数。
 
 ## wirte 异步
+
 wirte异步就跟accept/read方式一样了，不再重述。
 
-
 ## 附加
+
 根据我们以上分析，这里最核心的地方是iocp，其内部是有一个线程池，负责管理多个Channel，默认使用 ThreadPool.getDefault()得到这个线程池，也可以自定义这个线程池：
 ```
 AsynchronousChannelGroup threadGroup = AsynchronousChannelGroup.withThreadPool((ExecutorService) getExecutor());
@@ -789,8 +799,8 @@ serverSock = AsynchronousServerSocketChannel.open(threadGroup);
 ```
 
 # linux实现
-打开linux源代码，找到DefaultAsynchronousChannelProvider.create，继续找到LinuxAsynchronousChannelProvider
 
+打开linux源代码，找到DefaultAsynchronousChannelProvider.create，继续找到LinuxAsynchronousChannelProvider
 ```
     @Override
     public AsynchronousServerSocketChannel openAsynchronousServerSocketChannel(AsynchronousChannelGroup group)
@@ -821,14 +831,14 @@ serverSock = AsynchronousServerSocketChannel.open(threadGroup);
         return defaultPort;
     }
 ```
-可以看到这里使用的是一个EPollPort，跟windows上的Iocp类似：
 
+可以看到这里使用的是一个EPollPort，跟windows上的Iocp类似：
 ```
 final class EPollPort extends Port{。。。}
 abstract class Port extends AsynchronousChannelGroupImpl{。。。}
 ```
-EPollPort实际上也是一个AsynchronousChannelGroup。我们先看看UnixAsynchronousServerSocketChannelImpl
 
+EPollPort实际上也是一个AsynchronousChannelGroup。我们先看看UnixAsynchronousServerSocketChannelImpl
 ```
     @Override
     Future<AsynchronousSocketChannel> implAccept(Object att,
@@ -840,10 +850,9 @@ EPollPort实际上也是一个AsynchronousChannelGroup。我们先看看UnixAsyn
             //这里直接调用accept方法
             int n = accept(this.fd, newfd, isaa);
 ```
+
 调用的是native方法：
-
 ```
-
 JNIEXPORT jint JNICALL
 Java_sun_nio_ch_UnixAsynchronousServerSocketChannelImpl_accept0(JNIEnv* env,
     jobject this, jobject ssfdo, jobject newfdo, jobjectArray isaa)
@@ -852,10 +861,9 @@ Java_sun_nio_ch_UnixAsynchronousServerSocketChannelImpl_accept0(JNIEnv* env,
         ssfdo, newfdo, isaa);
 }
 ```
+
 找到Java_sun_nio_ch_ServerSocketChannelImpl_accept0在ServerSocketChannelImpl.c中：
-
 ```
-
 JNIEXPORT jint JNICALL
 Java_sun_nio_ch_ServerSocketChannelImpl_accept0(JNIEnv *env, jobject this,
                                                 jobject ssfdo, jobject newfdo,
@@ -914,8 +922,28 @@ Java_sun_nio_ch_ServerSocketChannelImpl_accept0(JNIEnv *env, jobject this,
 ```
 这里有个循环，一直accept，accept到了才跳出去。linux环境没有搭建好，不好调试，先写到这里，下次有机会在linux中调试。
 
+## Linux kernel AIO这个奇葩
+
+有位技术牛人研究linux aio，写了一遍blog：
+[Linux kernel AIO这个奇葩](http://www.wzxue.com/linux-kernel-aio%e8%bf%99%e4%b8%aa%e5%a5%87%e8%91%a9/)
+
+这个blog打不开了，可以看csdn上的转发：
+[https://blog.csdn.net/abcd1f2/article/details/47440087](https://blog.csdn.net/abcd1f2/article/details/47440087)
 
 
+Linux AIO 早就被提上议程，目前比较知名的有 Glibc 的 AIO 与 Kernel Native AIO 
+- Glibc AIO: http://www.ibm.com/developerworks/linux/library/l-async/ 
+- Kernel Native AIO: http://lse.sourceforge.net/io/aio.html 
+
+在Glibc AIO 的实现中， 用多线程同步来模拟 异步IO ，以上述代码为例，它牵涉了3个线程， 主线程（23908）新建 一个线程（23909）来调用 阻塞的pread函数，当pread返回时，又创建了一个线程（23910）来执行我们预设的异步回调函数， 23909 等待23910结束返回，然后23909也结束执行.. 
+
+实际上，为了避免线程的频繁创建、销毁，当有多个请求时，Glibc AIO 会使用线程池，但以上原理是不会变的，尤其要注意的是：我们的回调函数是在一个单独线程中执行的. 
+
+Glibc AIO 广受非议，存在一些难以忍受的缺陷和bug，饱受诟病，是极不推荐使用的. 
+
+详见：http://davmac.org/davpage/linux/async-io.html 
+
+> 目前linux上的AIO还不成熟，不推荐使用，那么jdk在linux上的aio是如何实现的呢？我们上文分析到，其实不是使用的linux aio，还是通过epoll实现的。
 
 # 总结
 - java异步，不高清楚里面的原理，很容易出错。我在编写本文demo时，就是没有对原理搞清楚，遇到好多问题。  
