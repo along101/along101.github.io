@@ -15,7 +15,7 @@ Java 8 中的 Stream 是对集合（Collection）对象功能的增强，它专�
 
 ### 从 Collection 和数组
 
-```
+```java
 Collection.stream()
 Collection.parallelStream()
 Arrays.stream(T array) 
@@ -23,18 +23,18 @@ Stream.of()
 ```
 ### 从 BufferedReader
 
-```
+```java
 java.io.BufferedReader.lines()
 ```
 ### 静态工厂
 
-```
+```java
 java.util.stream.IntStream.range()
 java.nio.file.Files.walk()
 ```
 ### 其它
 
-```
+```java
 Random.ints()
 BitSet.stream()
 Pattern.splitAsStream(java.lang.CharSequence)
@@ -43,7 +43,7 @@ JarFile.stream()
 
 ### Stream.generate
 - 生成 10 个随机整数
-```
+```java
 Random seed = new Random();
 Supplier<Integer> random = seed::nextInt;
 Stream.generate(random).limit(10).forEach(System.out::println);
@@ -54,7 +54,7 @@ limit(10).forEach(System.out::println);
 ### Stream.iterate
 iterate 跟 reduce 操作很像，接受一个种子值，和一个 UnaryOperator（例如 f）。然后种子值成为 Stream 的第一个元素，f(seed) 为第二个，f(f(seed)) 第三个，以此类推。
 - 生成一个等差数列
-```
+```java
 Stream.iterate(0, n -> n + 3).limit(10). forEach(x -> System.out.print(x + " "));
 ```
 
@@ -79,21 +79,21 @@ Stream.iterate(0, n -> n + 3).limit(10). forEach(x -> System.out.print(x + " "))
 ### map/flatMap
 作用就是把 input Stream 的每一个元素，映射成 output Stream 的另外一个元素。
 - 转换大写
-```
+```java
 List<String> output = wordList.stream().
 map(String::toUpperCase).
 collect(Collectors.toList());
 ```
 
 - 平方数
-```
+```java
 List<Integer> nums = Arrays.asList(1, 2, 3, 4);
 List<Integer> squareNums = nums.stream().
 map(n -> n * n).
 collect(Collectors.toList());
 ```
 - 一对多
-```
+```java
 Stream<List<Integer>> inputStream = Stream.of(
  Arrays.asList(1),
  Arrays.asList(2, 3),
@@ -106,14 +106,14 @@ flatMap((childList) -> childList.stream());
 filter 对原始 Stream 进行某项测试，通过测试的元素被留下来生成一个新 Stream。
 
 - 留下偶数
-```
+```java
 Integer[] sixNums = {1, 2, 3, 4, 5, 6};
 Integer[] evens =
 Stream.of(sixNums).filter(n -> n%2 == 0).toArray(Integer[]::new);
 ```
 
 - 把单词挑出来
-```
+```java
 List<String> output = reader.lines().
  flatMap(line -> Stream.of(line.split(REGEXP))).
  filter(word -> word.length() > 0).
@@ -123,7 +123,7 @@ List<String> output = reader.lines().
 ### forEach
 forEach 方法接收一个 Lambda 表达式，然后在 Stream 的每一个元素上执行该表达式。
 -  打印姓名（forEach 和 pre-java8 的对比）
-```
+```java
 // Java 8
 roster.stream()
  .filter(p -> p.getGender() == Person.Sex.MALE)
@@ -138,7 +138,7 @@ for (Person p : roster) {
 ### findFirst
 这是一个 termimal 兼 short-circuiting 操作，它总是返回 Stream 的第一个元素，或者空。这里比较重点的是它的返回值类型：Optional。这也是一个模仿 Scala 语言中的概念，作为一个容器，它可能含有某值，或者不包含。使用它的目的是尽可能避免 NullPointerException。
 
-```
+```java
 String strA = " abcd ", strB = null;
 print(strA);
 print("");
@@ -166,7 +166,7 @@ return Optional.ofNullable(text).map(String::length).orElse(-1);
 ### reduce
 > T reduce(T identity, BinaryOperator<T> accumulator) 这个方法的主要作用是把 Stream 元素组合起来。它提供一个起始值（种子），然后依照运算规则（BinaryOperator），和前面 Stream 的第一个、第二个、第 n 个元素组合。从这个意义上说，字符串拼接、数值的 sum、min、max、average 都是特殊的 reduce.也有没有起始值的情况，这时会把 Stream 的前面两个元素组合起来，返回的是 Optional。
 
-```
+```java
 // 字符串连接，concat = "ABCD"
 String concat = Stream.of("A", "B", "C", "D").reduce("", String::concat); 
 // 求最小值，minValue = -3.0
@@ -183,7 +183,7 @@ concat = Stream.of("a", "B", "c", "D", "e", "F").
 ### limit/skip
 > limit 返回 Stream 的前面 n 个元素；skip 则是扔掉前 n 个元素（它是由一个叫 subStream 的方法改名而来）。
 
-```
+```java
 public void testLimitAndSkip() {
  List<Person> persons = new ArrayList();
  for (int i = 1; i <= 10000; i++) {
@@ -212,7 +212,7 @@ private class Person {
 > 对 Stream 的排序通过 sorted 进行，它比数组的排序更强之处在于你可以首先对 Stream 进行各类 map、filter、limit、skip 甚至 distinct 来减少元素数量后，再排序，这能帮助程序明显缩短执行时间。
 
 - 排序前进行 limit 和 skip
-```
+```java
 List<Person> persons = new ArrayList();
  for (int i = 1; i <= 5; i++) {
  Person person = new Person(i, "name" + i);
@@ -225,7 +225,7 @@ System.out.println(personList2);
 > min 和 max 的功能也可以通过对 Stream 元素先排序，再 findFirst 来实现，但前者的性能会更好，为 O(n)，而 sorted 的成本是 O(n log n)。同时它们作为特殊的 reduce 方法被独立出来也是因为求最大最小值是很常见的操作。
 
 -  找出最长一行的长度
-```
+```java
 BufferedReader br = new BufferedReader(new FileReader("c:\\SUService.log"));
 int longest = br.lines().
  mapToInt(String::length).
@@ -236,7 +236,7 @@ System.out.println(longest);
 ```
 - 找出全文的单词，转小写，并排序
 
-```
+```java
 List<String> words = br.lines().
  flatMap(line -> Stream.of(line.split(" "))).
  filter(word -> word.length() > 0).
@@ -256,7 +256,7 @@ Stream 有三个 match 方法，从语义上说：
     
 > 它们都不是要遍历全部元素才能返回结果。例如 allMatch 只要一个元素不满足条件，就 skip 剩下的所有元素，返回 false。
 
-```
+```java
 List<Person> persons = new ArrayList();
 persons.add(new Person(1, "name" + 1, 10));
 persons.add(new Person(2, "name" + 2, 21));
@@ -275,13 +275,13 @@ System.out.println("Any child? " + isThereAnyChild);
 > java.util.stream.Collectors 类的主要作用就是辅助进行各类有用的 reduction 操作，例如转变输出为 Collection，把 Stream 元素进行归组。
 
 - 收集新的List
-```
+```java
 List<Integer> list = Stream.of(1, 2, 3, 4).filter(p -> p > 2).collect(Collectors.toList());
 ```
 ### groupingBy/partitioningBy
 
 - 按照年龄归组
-```
+```java
 Map<Integer, List<Person>> personGroups = Stream.generate(new PersonSupplier()).
  limit(100).
  collect(Collectors.groupingBy(Person::getAge));
@@ -296,7 +296,7 @@ while (it.hasNext()) {
 >Stream.reduce，常用的方法有average, sum, min, max, count，返回单个的结果值，并且reduce操作每处理一个元素总是创建一个新值
 >Stream.collection与stream.reduce方法不同，Stream.collect修改现存的值，而不是每处理一个元素，创建一个新值
 
-```
+```java
 public class LambdaMapReduce { 
     private static List<User> users = Arrays.asList( 
             new User(1, "张三", 12,User.Sex.MALE), 

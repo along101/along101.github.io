@@ -801,7 +801,7 @@ private static final long serialVersionUID = 1L;
 ```
 从代码上可以看到，`RequestTemplate`基本上直接转为`Request`，没有做什么逻辑操作。对比下`LoadBalancingTarget`：
 
-```
+```java
   public Request apply(RequestTemplate input) {
     //选取一个Server，lb是Ribbon的AbstractLoadBalancer类
     Server currentServer = lb.chooseServer(null);

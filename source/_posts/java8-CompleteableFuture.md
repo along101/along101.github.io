@@ -104,7 +104,7 @@ java8中新增加了java.util.concurrent.CompletableFuture类，作用类似RxJa
 # demo
 
 
-```
+```java
 
 public class CompletableFutureTest {
 

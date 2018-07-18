@@ -94,7 +94,7 @@ GitHub github = Feign.builder()
 ```
 Maven依赖:
 
-```
+```xml
   <!-- https://mvnrepository.com/artifact/com.netflix.feign/feign-gson -->
   <dependency>
       <groupId>com.netflix.feign</groupId>
@@ -113,7 +113,7 @@ api = Feign.builder()
            .target(Api.class, "https://apihost");
 ```
 Maven依赖:
-```
+```xml
 <dependency>
     <groupId>com.netflix.feign</groupId>
     <artifactId>feign-sax</artifactId>
@@ -132,7 +132,7 @@ api = Feign.builder()
 ```
 
 Maven依赖:
-```
+```xml
 <!-- https://mvnrepository.com/artifact/com.netflix.feign/feign-gson -->
 <dependency>
     <groupId>com.netflix.feign</groupId>
@@ -157,7 +157,7 @@ GitHub github = Feign.builder()
 ```
 Maven依赖:
 
-```
+```xml
 <!-- https://mvnrepository.com/artifact/com.netflix.feign/feign-gson -->
 <dependency>
     <groupId>com.netflix.feign</groupId>
@@ -198,7 +198,7 @@ MyService api = Feign.builder().client(RibbonClient.create()).target(MyService.c
 ```
 
 Maven依赖:
-```
+```xml
 <!-- https://mvnrepository.com/artifact/com.netflix.feign/feign-gson -->
 <dependency>
     <groupId>com.netflix.feign</groupId>
@@ -216,7 +216,7 @@ MyService api = HystrixFeign.builder().target(MyService.class, "https://myAppPro
 ```
 
 Maven依赖:
-```
+```xml
 <!-- https://mvnrepository.com/artifact/com.netflix.feign/feign-gson -->
 <dependency>
     <groupId>com.netflix.feign</groupId>
@@ -238,7 +238,7 @@ GitHub github = Feign.builder()
 ```
 
 Maven依赖:
-```
+```xml
 <!-- https://mvnrepository.com/artifact/com.netflix.feign/feign-gson -->
 <dependency>
     <groupId>com.netflix.feign</groupId>
@@ -251,14 +251,14 @@ Maven依赖:
 
  `Feign.builder() ` 允许你自定义一些额外的配置，比如说如何解码一个响应。假如有接口方法返回的消息不是  `Response `,  `String `,  `byte[]` 或者  `void ` 类型的，那么你需要配置一个非默认的解码器。
 下面是一个配置使用JSON解码器(使用的是feign-gson扩展)的例子:
-```
+```java
 GitHub github = Feign.builder()
                      .decoder(new GsonDecoder())
                      .target(GitHub.class, "https://api.github.com");
 ```
 
 假如你想在将响应传递给解码器处理前做一些额外的处理，那么你可以使用 `mapAndDecode` 方法。一个用例就是使用jsonp服务的时候:
-```
+```java
 JsonpApi jsonpApi = Feign.builder()
                          .mapAndDecode((response, type) -> jsopUnwrap(response, type), new GsonDecoder())
                          .target(JsonpApi.class, "https://some-jsonp-api.com");

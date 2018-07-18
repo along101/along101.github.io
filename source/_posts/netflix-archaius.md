@@ -29,7 +29,7 @@ spring cloud的spring-cloud-netflix-core组件中集成了archaius，hystrix使�
 # 快速入门
 
 在maven工程中加入依赖的配置：
-```
+```xml
 <dependency>
   <groupId>com.netflix.archaius</groupId>
   <artifactId>archaius-core</artifactId>
@@ -39,7 +39,7 @@ spring cloud的spring-cloud-netflix-core组件中集成了archaius，hystrix使�
 archaius已经发展到2.x版本，但是spring cloud集成的还是0.7.X  
 
 编写示例代码：
-```
+```java
 public class Main {
     //获取一个Long型的动态配置项，默认值是1000。
     private static DynamicLongProperty timeToWait =
@@ -109,7 +109,7 @@ timeToWait: 5
 
 基本类型的动态配置继承`PropertyWrapper`类，实现接口`Property`，方法说明：
 
-```
+```java
 public interface Property<T> {
     //获取动态配置值
     T getValue();
@@ -132,14 +132,14 @@ public interface Property<T> {
 
 - DynamicStringListProperty
 可以动态配置String list
-```
+```java
 //String list
 DynamicStringListProperty prop = new DynamicStringListProperty("test2", "0|1", "\\|");
 List<String> list = prop.get();//获取包含"0","1"的字符串列表
 ```
 - DynamicStringMapProperty
 可以动态配置String Map
-```
+```java
 //String map
 DynamicStringMapProperty prop = new DynamicStringMapProperty("test3", "key1=1,key2=2,key3=3");
 Map<String, String> map = prop.get();
@@ -147,7 +147,7 @@ Map<String, String> map = prop.get();
 
 - DynamicStringSetProperty
 可以动态配置String set
-```
+```java
 //String set
 DynamicStringSetProperty prop = new DynamicStringSetProperty("test4", "a,b,c");
 ```
@@ -156,7 +156,7 @@ DynamicStringSetProperty prop = new DynamicStringSetProperty("test4", "a,b,c");
 ## 变更回调
 
 动态配置项通过`addCallback`方法增加回调函数：
-```
+```java
 //设置回调
 timeToWait.addCallback(() -> {
     System.out.println("timeToWait callback, new value: " + timeToWait.get());
@@ -178,7 +178,7 @@ archauis默认配置源是classpath下的config.properties，可以增加VM启�
 
 # spring boot集成
 spring bean初始化完成，属性值从配置文件注入之后，如果修改配置文件，属性值是不会修改的。如果我们想在运行过程中动态的获取配置项，我们可以将spring的Environment注入到bean中，在代码逻辑中从Environment中获取配置：
-```
+```java
 @Autowired
 private Environment env;
 public void someMethod(){
@@ -188,7 +188,7 @@ public void someMethod(){
 }
 ```
 这样的代码显得有些臃肿，并且性能也不高，因为environment是由多个配置源组合起来的。我们使用archaius动态配置就简单很多：
-```
+```java
 private DynamicStringProperty someConfig=DynamicPropertyFactory.getInstance().getStringProperty("someConfig.name", "default");
 public void someMethod(){
   ...
@@ -197,7 +197,7 @@ public void someMethod(){
 }
 ```
 如果想参数变更后做些业务操作，archaius非常简单：
-```
+```java
 //某个bean的内部
 private DynamicStringProperty someConfig=DynamicPropertyFactory.getInstance().getStringProperty("someConfig.name", "default");
 
@@ -210,7 +210,7 @@ public void someMethod(){
 }
 ```
 spring boot中如何集成archaius呢？ spring-cloud-netflix-core自动配置了archaius，集成spring boot，只要加入如下依赖：
-```
+```xml
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-netflix-core</artifactId>
@@ -224,7 +224,7 @@ spring boot中如何集成archaius呢？ spring-cloud-netflix-core自动配置�
 ```
 
 编写测试类TestApplication验证:
-```
+```java
 @SpringBootApplication
 public class TestApplication {
 
@@ -262,7 +262,7 @@ archaius config: archaius-test
 但是这里有个问题，spring boot本身使用了外部配置，比如集成了apollo，**修改配置，archaius配置项是不生效的**。分析spring-cloud-netflix-core的源代码，里面有个ConfigurableEnvironmentConfiguration继承了apache的AbstractConfiguration，将spring Environment进行了封装，实例化后作为配置源加到archaius的组合配置中，并没有像DynamicURLConfiguration那样进行schedule。   
 
 我们前面对archaius的源代码进行了详细的分析，可以对此进行改进，让spring更新env时，archaius配置项能感知到。首先增加一个配置源类，实现PolledConfigurationSource接口：
-```
+```java
 @Slf4j
 public class SpringEnvConfigurationSource implements PolledConfigurationSource {
     //spring的Environment
@@ -331,7 +331,7 @@ public class SpringEnvConfigurationSource implements PolledConfigurationSource {
 ```
 这段代码是参考spring-cloud-netflix-core中的ConfigurableEnvironmentConfiguration实现的。  
 然后编写自动配置类代码：
-```
+```java
 @Configuration
 @ConfigurationProperties("archaius")
 public class ArchaiusConfig implements EnvironmentAware, InitializingBean {
@@ -376,7 +376,7 @@ public class ArchaiusConfig implements EnvironmentAware, InitializingBean {
 }
 ```
 修改启动类进行测试：
-```
+```java
 @SpringBootApplication
 public class TestApplication {
 
@@ -451,8 +451,9 @@ archaius config: map change 7
 archaius源码不多，重点在配置的初始化和动态变更这块。
 
 ## 初始化配置
+
 初始化入口是`DynamicPropertyFactory.getInstance()`，来看看该方法源码
-```
+```java
     public static DynamicPropertyFactory getInstance() {
         if (config == null) {
             synchronized (ConfigurationManager.class) {
@@ -473,7 +474,8 @@ archaius源码不多，重点在配置的初始化和动态变更这块。
 ```
 
 `ConfigurationManager`的静态代码块中执行
-```
+
+```java
 static{
     ...省略部分代码
 
@@ -483,7 +485,7 @@ static{
 ```
 
 经过一层层调用，调用到`createDefaultConfigInstance`来创建`AbstractConfiguration`：
-```
+```java
     private static AbstractConfiguration createDefaultConfigInstance() {
         //新建一个组合配置，配置列表中自带一个ConcurrentMapConfiguration，这个配置是containerConfiguration，容器自己的配置
         ConcurrentCompositeConfiguration config = new ConcurrentCompositeConfiguration();  
@@ -525,7 +527,7 @@ static{
 
 回到`DynamicPropertyFactory`代码里面，生成了`AbstractConfiguration configFromManager`之后，调用方法`initWithConfigurationSource`初始化：
 
-```
+```java
     public static DynamicPropertyFactory initWithConfigurationSource(AbstractConfiguration config) {
 
             。。。
@@ -534,8 +536,9 @@ static{
         }
     }
 ```
+
 后面会设置`setDirect`，将`DynamicPropertySupport`注册到`DynamicProperty`中
-```
+```java
     static void setDirect(DynamicPropertySupport support) {
         synchronized (ConfigurationManager.class) {
             config = support;
@@ -544,8 +547,9 @@ static{
         }
     }
 ```
+
 `DynamicProperty`注册`DynamicPropertySupport`的过程是增加一个`DynamicPropertyListener`，更新所有的属性，也就是更新他的静态变量`ALL_PROPS`里面的配置项
-```
+```java
     static synchronized void initialize(DynamicPropertySupport config) {
         dynamicPropertySupportImpl = config;
         config.addConfigurationListener(new DynamicPropertyListener());
@@ -564,13 +568,13 @@ static{
 ## 获取配置
 
 通过以下代码获取动态配置：
-```
+```java
 DynamicLongProperty timeToWait =
             DynamicPropertyFactory.getInstance().getLongProperty("lock.waitTime", 1000);
 ```
 进入`getLongProperty`方法：
 
-```
+```java
     public DynamicLongProperty getLongProperty(String propName, long defaultValue, final Runnable propertyChangeCallback) {
         //检查初始化
         checkAndWarn(propName);
@@ -583,11 +587,11 @@ DynamicLongProperty timeToWait =
 ```
 
 `DynamicLongProperty`继承了`PropertyWrapper`，含有属性`DynamicProperty prop`，先初始化该属性：
-```
+```java
 this.prop = DynamicProperty.getInstance(propName);
 ```
 再往下看：
-```
+```java
     public static DynamicProperty getInstance(String propName) {
         //dynamicPropertySupportImpl为空，先初始化DynamicPropertyFactory
         if (dynamicPropertySupportImpl == null) {
@@ -610,7 +614,7 @@ this.prop = DynamicProperty.getInstance(propName);
 ```
 再看`new DynamicProperty(propName)`
 
-```
+```java
     private DynamicProperty(String propName) {
         //设置属性名称
         this.propName = propName;
@@ -660,7 +664,7 @@ boolean updateValue(Object newValue) {
 
 到这里`DynamicLongProperty`对象就新建了，里面包含一个`DynamicProperty`，配置值的更新、回调都是由这个`DynamicProperty`完成的，他的属性有：
 
-```
+```java
     //配置名称
     private String propName;
     //配置的值，原始string
@@ -709,20 +713,20 @@ boolean updateValue(Object newValue) {
 
 ```
 这个`CachedValue`是`DynamicLongProperty`的内部类，缓存了配置的实际值，通过解析`DynamicLongProperty`的stringValue值获取不同类型的配置值。下面我们来分析这一过程。`DynamicLongProperty.get()`获取动态配置项的值代码如下：
-```
+```java
     public long get() {
         return prop.getLong(defaultValue).longValue();
     }
 ```
 通过内置的prop属性即`DynamicProperty`获取的配置项，prop中通过属性longValue获取配置项
-```
+```java
     public Long getLong(Long defaultValue) {
         return longValue.getValue(defaultValue);
     }
 ```
 前面初始化prop时，会初始化属性`CachedValue<Long> longValue`：
 
-```
+```java
     private CachedValue<Long> longValue = new CachedValue<Long>() {
         protected Long parse(String rep) throws NumberFormatException {
             return Long.valueOf(rep);
@@ -731,7 +735,7 @@ boolean updateValue(Object newValue) {
 ```
 longValue是一个`CachedValue`类型，getValue方法如下：
 
-```
+```java
         public T getValue() throws IllegalArgumentException {
             // Not quite double-check locking -- since isCached is marked as volatile
             if (!isCached) {
@@ -763,7 +767,7 @@ longValue是一个`CachedValue`类型，getValue方法如下：
 ## 动态更新
 archaius最有价值的特点是能动态更新配置项，这里动态更新的配置项是指前面我们分析初始化是的`DynamicURLConfiguration`，我们先看看`DynamicURLConfiguration`的是如何动态更新的，构造函数：
 
-```
+```java
     public DynamicURLConfiguration() {
         URLConfigurationSource source = new URLConfigurationSource();
         if (source.getConfigUrls() != null && source.getConfigUrls().size() > 0) {
@@ -773,7 +777,7 @@ archaius最有价值的特点是能动态更新配置项，这里动态更新的
 ```
 这里的startPolling开始轮询url资源内容，然后更新：
 
-```
+```java
     public synchronized void startPolling(PolledConfigurationSource source, AbstractPollingScheduler scheduler) {
         this.scheduler = scheduler;
         this.source = source;
@@ -832,7 +836,7 @@ archaius最有价值的特点是能动态更新配置项，这里动态更新的
 以上代码是先初始化，从url中拉取配置，然后开启一个线程，间隔一段时间拉取，然后调用populateProperties方法更新配置。  
 source.poll代码比较简单，获取url资源，得到Properties，转换为map，封装在`PollResult`中
 
-```
+```java
     public PollResult poll(boolean initial, Object checkPoint)
             throws IOException {    
         if (configUrls == null || configUrls.length == 0) {
@@ -851,7 +855,7 @@ source.poll代码比较简单，获取url资源，得到Properties，转换为ma
 ```
 
 populateProperties更新配置的代码：
-```
+```java
 protected void populateProperties(final PollResult result, final Configuration config) {
         if (result == null || !result.hasChanges()) {
             return;
@@ -886,7 +890,7 @@ protected void populateProperties(final PollResult result, final Configuration c
 ```
 先遍历所有配置项进行更新，然后处理删除配置项。通过propertyUpdater.addOrChangeProperty更新配置型，代码：
 
-```
+```java
 void addOrChangeProperty(final String name, final Object newValue, final Configuration config) {
         // We do not want to abort the operation due to failed validation on one property
         try {
@@ -932,7 +936,7 @@ void addOrChangeProperty(final String name, final Object newValue, final Configu
     }
 ```
 更新配置项的过程是拿出老的配置值跟新的配置值进行比较，不相同才修改，还处理了下数组配置项。这里的config是`DynamicURLConfiguration`，setProperty方法中触发事件：
-```
+```java
     @Override
     public void setProperty(String key, Object value) throws ValidationException
     {
@@ -945,7 +949,7 @@ void addOrChangeProperty(final String name, final Object newValue, final Configu
     }
 ```
 setPropertyImpl方法修改`DynamicURLConfiguration`内部保存的配置项，这里虽然改了`DynamicURLConfiguration`配置项值，但是真正用到的地方存在`DynamicProperty`中，触发fireEvent方法才会去修改`DynamicProperty`中的值：
-```
+```java
     @Override
     protected void fireEvent(int type, String propName, Object propValue, boolean beforeUpdate) {
         if (listeners == null || listeners.size() == 0) {
@@ -970,7 +974,7 @@ setPropertyImpl方法修改`DynamicURLConfiguration`内部保存的配置项，�
     }
 ```
 `DynamicURLConfiguration`添加到`ConcurrentCompositeConfiguration`中时，`ConcurrentCompositeConfiguration`会给每个Configuration增加一个`ConfigurationListener eventPropagater`:
-```
+```java
 public void addConfigurationAtIndex(AbstractConfiguration config, String name, int index)
     throws IndexOutOfBoundsException {
         if (!configList.contains(config)) {
@@ -989,7 +993,7 @@ public void addConfigurationAtIndex(AbstractConfiguration config, String name, i
 ```
 `DynamicURLConfiguration`中就有一个`ConfigurationListener`的监听器：
 
-```
+```java
     //ConcurrentCompositeConfiguration监听器属性初始化
     private ConfigurationListener eventPropagater = new ConfigurationListener() {
         @Override
@@ -1044,7 +1048,7 @@ public void addConfigurationAtIndex(AbstractConfiguration config, String name, i
 - ConfigurationBasedDeploymentContext.configListener 部署监听器，环境配置发生改变时，修改环境配置项
 
 重要的是这个`ExpandedConfigurationListenerAdapter`，作用是将arhaius定义的监听器适配到Apache定义的监听器上，一个典型的适配器模式。`ExpandedConfigurationListenerAdapter`含有一个`PropertyListener expandedListener`属性，实现类是`DynamicProperty`的内部类`DynamicPropertyListener`。初始化的地方在`DynamicPropertyFactory`方法setDirect中：
-```
+```java
     static void setDirect(DynamicPropertySupport support) {
         synchronized (ConfigurationManager.class) {
             config = support;
@@ -1055,7 +1059,7 @@ public void addConfigurationAtIndex(AbstractConfiguration config, String name, i
 ```
 `DynamicProperty.registerWithDynamicPropertySupport`方法：
 
-```
+```java
     static void registerWithDynamicPropertySupport(DynamicPropertySupport config) {
         initialize(config);
     }
@@ -1072,7 +1076,7 @@ public void addConfigurationAtIndex(AbstractConfiguration config, String name, i
 ![](netflix-archaius/listener.png)
 
 根据前面的分析，fireEvent触发的事件最终会适配到`DynamicPropertyListener`的setProperty方法：
-```
+```java
         //事件触发中调用setProperty
         @Override
         public void setProperty(Object source, String name, Object value, boolean beforeUpdate) {
@@ -1132,7 +1136,7 @@ public void addConfigurationAtIndex(AbstractConfiguration config, String name, i
 ```
 这里callbacks是`DynamicProperty`的属性，在给动态配置添加回调函数时，直接添加到`DynamicProperty.callbacks`属性中，来看`PropertyWrapper`类的addCallback犯法：
 
-```
+```java
 public void addCallback(Runnable callback) {
         if (callback != null) {
             //这里的prop就是DynamicProperty
