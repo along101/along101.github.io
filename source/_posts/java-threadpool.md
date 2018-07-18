@@ -15,11 +15,11 @@ categories: [java]
 
 java中线程的状态一共分为6种：new、runnable、blocked、waiting、timed_waiting、terminated
 
-### 初始态：new
+## 初始态：new
 
 创建一个`Thread`对象，但还未调用`start()`启动线程时，线程处于初始态。
 
-### 运行态：runnable
+## 运行态：runnable
 
 在Java中，运行态包括`就绪态`和`运行态`。
 - 就绪态
@@ -29,7 +29,7 @@ java中线程的状态一共分为6种：new、runnable、blocked、waiting、ti
     - 获得CPU执行权，正在执行的线程。
     - 由于一个CPU同一时刻只能执行一条线程，因此每个CPU每个时刻只有一条运行态的线程。
 
-### 阻塞态：blocked
+## 阻塞态：blocked
 
 - 当一条正在执行的线程请求某一资源失败时，就会进入阻塞态。
 - 而在Java中，阻塞态专指请求锁失败时进入的状态。
@@ -38,25 +38,25 @@ java中线程的状态一共分为6种：new、runnable、blocked、waiting、ti
 
 PS：锁、IO、Socket等都资源。
 
-### 等待：waiting
+## 等待：waiting
 
 - 当前线程中调用wait、join、park函数时，当前线程就会进入等待态。
 - 也有一个等待队列存放所有等待态的线程。
 - 线程处于等待态表示它需要等待其他线程的指示才能继续运行。
 - 进入等待态的线程会释放CPU执行权，并释放资源（如：锁）
 
-### 超时等待：timed_waiting
+## 超时等待：timed_waiting
 
 - 当运行中的线程调用`sleep(time)`、`wait(time)`、`join`、`parkNanos`、`parkUntil`时，就会进入该状态；
 - 它和等待态一样，并不是因为请求不到资源，而是主动进入，并且进入后需要其他线程唤醒；
 - 进入该状态后释放CPU执行权和占有的资源。
 - 与等待态的区别：到了超时时间后自动进入阻塞队列，开始竞争锁。
 
-### 终止：terminated
+## 终止：terminated
 
 线程执行结束后的状态。
 
-### 注意
+## 注意
 
 - `wait()`方法会释放CPU执行权 和 占有的锁。
 - `sleep(long)`方法仅释放CPU使用权，锁仍然占用；线程被放入超时等待队列，与`yield`相比，它会使线程较长时间得不到运行。
@@ -282,7 +282,7 @@ public ThreadPoolExecutor(int corePoolSize,    //核心线程的数量
     - 尝试将正在跑的任务`interrupt`中断
     - 返回未执行的任务列表
 
-### 等待线程结束
+## 等待线程结束
 
 `awaitTermination`当前线程阻塞，直到
     - 等所有已提交的任务（包括正在跑的和队列中等待的）执行完
