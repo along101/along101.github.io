@@ -1,15 +1,15 @@
 ---
-title: spring-cloud-openfeign 方法参数注解不被继承问题
+title: springMvc Controller方法参数注解不被继承问题
 date: 2018-07-19 14:20:13
-tags: [spring-cloud,feign,rest]
+tags: [spring,rest]
 categories: spring
 ---
 
 # 问题描述
 
 spring-cloud-openfeign 很方便的将http rest服务调用转换为基于接口的rpc调用。
-服务端和客户端多引用相同的Rest定义接口，服务端使用`RestController`实现该接口，客户端通过Feign生成该接口的代理，就能保证服务端和客户端的协议。
-但是springMvc有个缺陷，`RestController`继承的接口能将接口类和方法上的注解都继承过来，但是方法参数的注解却无法继承。
+服务端和客户端多引用相同的Rest定义接口，服务端使用RestController实现该接口，客户端通过Feign生成该接口的代理，就能保证服务端和客户端的协议。
+但是springMvc有个缺陷，RestController继承的接口能将接口类和方法上的注解都继承过来，**但是方法参数的注解却无法继承**。
 本文提供了一种解决该问题的方案，非侵入试的巧妙的解决了该问题。
 
 <!--more-->
@@ -141,7 +141,7 @@ http://localhost:8081/test2/hello2?name=along&age=12
 
 网上找到一个springMvc的原理图，描述的比较清晰：
 
-![](spring-cloud-feign-param/springMvc.png)
+![](springMvc-controller-param/springMvc.png)
 
 简单的描述下，几个核心类是`DispatcherServlet`、`HandlerMapping`、`HandlerAdapter`、`HandlerMethod`、`ModelAndView`、`ViewResolver`。
 - `DispatcherServlet` 处理请求的servlet，前端控制器，整个流程控制的中心，控制其它组件执行，统一调度
